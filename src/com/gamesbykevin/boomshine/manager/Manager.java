@@ -21,17 +21,11 @@ import java.awt.Rectangle;
  */
 public final class Manager implements Disposable, IElement
 {
-    //the timer to keep track of time playing
-    private Timer timer;
-    
     //the game board
     private Board board;
     
-    //the object representing the mouse
-    private Ball mouse;
-    
-    //the width of the mouse capture display
-    private static final int MOUSE_DIMENSION = 15;
+    //keep track of the level
+    private int level = 0;
     
     /**
      * Constructor for Manager, this is the point where we load any menu option configurations
@@ -68,16 +62,65 @@ public final class Manager implements Disposable, IElement
          * Level 11 = 55 is the count and 44 is the goal
          * Level 12 = 60 is the count and 55 is the goal
          * 
-         * 
          */
-        
         
         this.board.resetBoard(5, 1);
         
-        //new object representing the mouse
-        mouse = new Ball();
-        mouse.setColor(Color.WHITE);
-        mouse.setDimensions(MOUSE_DIMENSION, MOUSE_DIMENSION);
+        setupLevel();
+    }
+    
+    private void setupLevel()
+    {
+        switch(level)
+        {
+            case 0:
+                this.board.resetBoard(5, 1);
+                break;
+                
+            case 1:
+                this.board.resetBoard(10, 2);
+                break;
+                
+            case 2:
+                this.board.resetBoard(15, 3);
+                break;
+                
+            case 3:
+                this.board.resetBoard(20, 5);
+                break;
+                
+            case 4:
+                this.board.resetBoard(25, 7);
+                break;
+                
+            case 5:
+                this.board.resetBoard(30, 10);
+                break;
+                
+            case 6:
+                this.board.resetBoard(35, 15);
+                break;
+                
+            case 7:
+                this.board.resetBoard(40, 21);
+                break;
+                
+            case 8:
+                this.board.resetBoard(45, 27);
+                break;
+                
+            case 9:
+                this.board.resetBoard(50, 33);
+                break;
+                
+            case 10:
+                this.board.resetBoard(55, 44);
+                break;
+                
+            case 11:
+                this.board.resetBoard(60, 55);
+                break;
+        }
     }
     
     /**
@@ -98,11 +141,30 @@ public final class Manager implements Disposable, IElement
     @Override
     public void update(final Engine engine) throws Exception
     {
-        if (this.board != null)
-            this.board.update(engine);
-        
-        //set the appropriate location
-        mouse.setLocation(engine.getMouse().getLocation());
+        if (board != null)
+        {
+            board.update(engine);
+            
+            if (board.hasGameover())
+            {
+                //if we won
+                if (board.hasSucceeded())
+                {
+                    //move to the next level
+                    level++;
+                    
+                    if (level > 11)
+                        level = 11;
+                    
+                    setupLevel();
+                }
+                else
+                {
+                    //restart current level
+                    setupLevel();
+                }
+            }
+        }
     }
     
     /**
@@ -112,10 +174,7 @@ public final class Manager implements Disposable, IElement
     @Override
     public void render(final Graphics graphics)
     {
-        if (this.board != null)
-            this.board.render(graphics);
-        
-        if (this.mouse != null)
-            this.mouse.render(graphics);
+        if (board != null)
+            board.render(graphics);
     }
 }
