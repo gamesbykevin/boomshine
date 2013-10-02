@@ -10,6 +10,7 @@ import com.gamesbykevin.boomshine.shared.IElement;
 import java.awt.Color;
 
 import java.awt.Graphics;
+import java.awt.Point;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -38,6 +39,9 @@ public class Board extends Sprite implements Disposable, IElement
     //the number of balls to start off with when the board is reset
     private int count;
     
+    //where are we currently at towards our goal
+    private int progress;
+    
     //the max speed the ball can travel
     private static final int BALL_MAX_SPEED = 1;
     
@@ -49,6 +53,15 @@ public class Board extends Sprite implements Disposable, IElement
     
     //did we win
     private boolean succeed = false;
+    
+    //the area where we draw the player information
+    private Point locationInfo;
+    
+    //the area where we draw the player score
+    private Point locationScore;
+    
+    //the score
+    private int score = 0;
     
     public Board()
     {
@@ -75,6 +88,33 @@ public class Board extends Sprite implements Disposable, IElement
         
     }
     
+    /**
+     * Add the parameter score to our total score
+     * @param score 
+     */
+    public void addScore(final int score)
+    {
+        this.score += score;
+    }
+    
+    /**
+     * Get the score
+     * @return 
+     */
+    public int getScore()
+    {
+        return this.score;
+    }
+    
+    /**
+     * Get the progress for the board
+     * @return int The number of chain reactions
+     */
+    public int getProgress()
+    {
+        return this.progress;
+    }
+    
     //create a new board
     public void resetBoard(final int count, final int goal)
     {
@@ -86,6 +126,9 @@ public class Board extends Sprite implements Disposable, IElement
         
         //set the count
         this.count = count;
+        
+        //start the progress back at 0
+        this.progress = 0;
         
         //set flag to false so the game won't be over
         this.gameover = false;
@@ -176,6 +219,9 @@ public class Board extends Sprite implements Disposable, IElement
                             
                             //play random hit sound effect
                             play = true;
+                            
+                            //increase the progress
+                            this.progress++;
                         }
                     }
                 }
@@ -226,6 +272,9 @@ public class Board extends Sprite implements Disposable, IElement
                         
                         //play random hit sound effect
                         play = true;
+                        
+                        //increase the progress
+                        this.progress++;
                     }
                 }
             }
@@ -241,6 +290,7 @@ public class Board extends Sprite implements Disposable, IElement
             }
         }
         
+        //if any collision flag will be true to play a random sound effect
         if (play)
         {
             //play random hit sound effect
@@ -336,5 +386,45 @@ public class Board extends Sprite implements Disposable, IElement
         
         if (player != null)
             player.render(graphics);
+        
+        //draw the extra information
+        renderInformation(graphics);
+    }
+    
+    private void renderInformation(final Graphics graphics)
+    {
+        if (locationInfo == null)
+        {
+            //create a new location
+            locationInfo = new Point();
+            locationInfo.x = (int)(getX() + 25);
+            locationInfo.y = (int)(getY() + getHeight() - graphics.getFontMetrics().getHeight());
+        }
+        
+        if (locationScore == null)
+        {
+            //create a new location
+            locationScore = new Point();
+            locationScore.x = (int)(getX() + getWidth() - 100);
+            locationScore.y = (int)(getY() + getHeight() - graphics.getFontMetrics().getHeight());
+        }
+        
+        if (progress >= goal)
+        {
+            graphics.setColor(Color.GREEN);
+        }
+        else
+        {
+            graphics.setColor(Color.WHITE);
+        }
+        
+        //set the appropriate font
+        graphics.setFont(graphics.getFont().deriveFont(24f));
+        
+        //draw progress and count
+        graphics.drawString(progress + "/" + goal + "  " + count + " balls.", locationInfo.x, locationInfo.y);
+        
+        //draw score
+        graphics.drawString("Score: " + score, locationScore.x, locationScore.y);
     }
 }

@@ -11,10 +11,8 @@ import com.gamesbykevin.boomshine.menu.CustomMenu.LayerKey;
 import com.gamesbykevin.boomshine.menu.CustomMenu.OptionKey;
 import com.gamesbykevin.boomshine.shared.IElement;
 import java.awt.Color;
-
 import java.awt.Graphics;
-import java.awt.Point;
-import java.awt.Rectangle;
+import java.awt.image.BufferedImage;
 /**
  * The parent class that contains all of the game elements
  * @author GOD
@@ -26,6 +24,27 @@ public final class Manager implements Disposable, IElement
     
     //keep track of the level
     private int level = 0;
+    
+    //this will determine if the players game is over
+    private boolean gameover = false;
+    
+    //this timer will track the time passed
+    private Timer timer;
+
+    //our game over image that will be buffered
+    private BufferedImage gameoverImage;
+    
+    /**
+     * Different modes of play
+     * 
+     * Free - play with no restrictions
+     * Timed - Must beat each level within the given amount of time
+     * Survival - You have a limited number of attempts
+     */
+    public enum Mode
+    {
+        Free, Timed, Survival
+    }
     
     /**
      * Constructor for Manager, this is the point where we load any menu option configurations
@@ -43,29 +62,10 @@ public final class Manager implements Disposable, IElement
         this.board.setLocation(0, 0);
         this.board.setDimensions(engine.getMain().getScreen().getWidth(), engine.getMain().getScreen().getHeight());
         
-        /**
-         * The score will be the number of chains you get in each level added up
-         * 
-         * maybe have a certain number of lives to complete the level
-         * timed mode, you will have unlimited lives but a specific time to finish the level
-         * 
-         * Level 1  = 05 is the count and 01 is the goal
-         * Level 2  = 10 is the count and 02 is the goal
-         * Level 3  = 15 is the count and 03 is the goal
-         * Level 4  = 20 is the count and 05 is the goal
-         * Level 5  = 25 is the count and 07 is the goal
-         * Level 6  = 30 is the count and 10 is the goal
-         * Level 7  = 35 is the count and 15 is the goal
-         * Level 8  = 40 is the count and 21 is the goal
-         * Level 9  = 45 is the count and 27 is the goal
-         * Level 10 = 50 is the count and 33 is the goal
-         * Level 11 = 55 is the count and 44 is the goal
-         * Level 12 = 60 is the count and 55 is the goal
-         * 
-         */
+        //create timer
+        this.timer = new Timer();
         
-        this.board.resetBoard(5, 1);
-        
+        //call this last in the constructor
         setupLevel();
     }
     
@@ -141,20 +141,27 @@ public final class Manager implements Disposable, IElement
     @Override
     public void update(final Engine engine) throws Exception
     {
-        if (board != null)
+        if (board != null && !gameover)
         {
             board.update(engine);
+            
+            //update our overall time tracker
+            timer.update(engine.getMain().getTime());
             
             if (board.hasGameover())
             {
                 //if we won
                 if (board.hasSucceeded())
                 {
+                    //add the progress to the total score
+                    board.addScore(board.getProgress());
+                    
                     //move to the next level
                     level++;
                     
+                    //have we beaten all of the levels
                     if (level > 11)
-                        level = 11;
+                        gameover = true;
                     
                     setupLevel();
                 }
@@ -174,7 +181,61 @@ public final class Manager implements Disposable, IElement
     @Override
     public void render(final Graphics graphics)
     {
-        if (board != null)
-            board.render(graphics);
+        if (!gameover)
+        {
+            if (board != null)
+                board.render(graphics);
+            
+            //draw time elapsed
+            graphics.setColor(Color.WHITE);
+            graphics.drawString("Time: " + timer.getDescPassed(TimerCollection.FORMAT_6), (int)board.getX() + 25, (int)board.getY() + 25);
+        }
+        else
+        {
+            if (this.gameoverImage == null)
+            {
+                //create buffered image
+                this.gameoverImage = new BufferedImage((int)board.getWidth(), (int)board.getHeight(), BufferedImage.TYPE_INT_ARGB);
+                
+                //graphics object for buffered image
+                final Graphics tmp = this.gameoverImage.createGraphics();
+
+                //height of font
+                final int height = graphics.getFontMetrics().getHeight();
+                
+                //set the appropriate font and color
+                tmp.setFont(graphics.getFont());
+                tmp.setFont(tmp.getFont().deriveFont(36f));
+                tmp.setColor(Color.WHITE);
+
+                String display = "Game Over";
+                
+                int x = (int)(board.getX() + (board.getWidth()  / 2) - (tmp.getFontMetrics().stringWidth(display) / 2));
+                int y = (int)(board.getY() + (board.getHeight() / 3));
+
+                //draw game over message
+                tmp.drawString(display, x, y);
+                
+                //time played message
+                display = "Time Played: " + timer.getDescPassed(TimerCollection.FORMAT_6);
+                
+                //draw string
+                x = (int)(board.getX() + (board.getWidth()  / 2) - (tmp.getFontMetrics().stringWidth(display) / 2));
+                y += (height * 2);
+                tmp.drawString(display, x, y);
+                
+                //score played message
+                display = "Score: " + board.getScore();
+                
+                //draw string
+                x = (int)(board.getX() + (board.getWidth()  / 2) - (tmp.getFontMetrics().stringWidth(display) / 2));
+                y += (height * 2);
+                tmp.drawString(display, x, y + (height * 2));
+            }
+            else
+            {
+                graphics.drawImage(gameoverImage, (int)board.getX(), (int)board.getY(), (int)board.getWidth(), (int)board.getHeight(), null);
+            }
+        }
     }
 }
