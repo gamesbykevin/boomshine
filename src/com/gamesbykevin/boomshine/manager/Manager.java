@@ -4,7 +4,6 @@ import com.gamesbykevin.framework.resources.Disposable;
 import com.gamesbykevin.framework.util.Timer;
 import com.gamesbykevin.framework.util.TimerCollection;
 
-import com.gamesbykevin.boomshine.board.Ball;
 import com.gamesbykevin.boomshine.board.Board;
 import com.gamesbykevin.boomshine.engine.Engine;
 import com.gamesbykevin.boomshine.menu.CustomMenu.LayerKey;
@@ -13,6 +12,7 @@ import com.gamesbykevin.boomshine.shared.IElement;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
+
 /**
  * The parent class that contains all of the game elements
  * @author GOD
@@ -31,8 +31,14 @@ public final class Manager implements Disposable, IElement
     //this timer will track the time passed
     private Timer timer;
 
+    //the timer when playing timed mode
+    private Timer countdown;
+    
     //our game over image that will be buffered
     private BufferedImage gameoverImage;
+    
+    //the delay which will be multiplied by a factor of the current level you are on
+    private static final long DELAY_COUNTDOWN = TimerCollection.toNanoSeconds(15000L);
     
     /**
      * Different modes of play
@@ -46,6 +52,9 @@ public final class Manager implements Disposable, IElement
         Free, Timed, Survival
     }
     
+    //the user selected mode
+    private final Mode mode;
+    
     /**
      * Constructor for Manager, this is the point where we load any menu option configurations
      * @param engine
@@ -53,20 +62,36 @@ public final class Manager implements Disposable, IElement
      */
     public Manager(final Engine engine) throws Exception
     {
-        //dimension size
-        //this.dimension = engine.getMenu().getOptionSelectionIndex(LayerKey.Options, OptionKey.Dimensions) + 3;
-        
-        this.board = new Board();
+        //the mode of game play
+        this.mode = Mode.values()[engine.getMenu().getOptionSelectionIndex(LayerKey.Options, OptionKey.Mode)];
         
         //set the location/dimensions of the board
+        this.board = new Board();
         this.board.setLocation(0, 0);
         this.board.setDimensions(engine.getMain().getScreen().getWidth(), engine.getMain().getScreen().getHeight());
         
-        //create timer
-        this.timer = new Timer();
+        //setup the appropriate timer
+        setupTimer();
         
         //call this last in the constructor
         setupLevel();
+    }
+    
+    /**
+     * Free up resources
+     */
+    @Override
+    public void dispose()
+    {
+        if (this.gameoverImage != null)
+            this.gameoverImage.flush();
+        
+        this.gameoverImage = null;
+        
+        if (this.board != null)
+            this.board.dispose();
+        
+        this.board = null;
     }
     
     private void setupLevel()
@@ -124,15 +149,6 @@ public final class Manager implements Disposable, IElement
     }
     
     /**
-     * Free up resources
-     */
-    @Override
-    public void dispose()
-    {
-        
-    }
-    
-    /**
      * Update all application elements
      * 
      * @param engine Our main game engine
@@ -147,6 +163,19 @@ public final class Manager implements Disposable, IElement
             
             //update our overall time tracker
             timer.update(engine.getMain().getTime());
+            
+            //if we are in timed mode make sure time hasn't run out
+            if (this.mode == Mode.Timed)
+            {
+                this.countdown.update(engine.getMain().getTime());
+                
+                if (this.countdown.hasTimePassed())
+                {
+                    this.countdown.setRemaining(0);
+                    this.gameover = true;
+                    return;
+                }
+            }
             
             if (board.hasGameover())
             {
@@ -163,14 +192,46 @@ public final class Manager implements Disposable, IElement
                     if (level > 11)
                         gameover = true;
                     
+                    //setup the timer
+                    setupTimer();
+                    
+                    //set the variables for the next level
                     setupLevel();
                 }
                 else
                 {
-                    //restart current level
-                    setupLevel();
+                    //if we didn't succeed and playing survival mode the game ends
+                    if (mode == Mode.Survival)
+                    {
+                        gameover = true;
+                    }
+                    else
+                    {
+                        //restart current level
+                        setupLevel();
+                    }
                 }
             }
+        }
+    }
+    
+    /**
+     * 
+     */
+    private void setupTimer()
+    {
+        //create our timer to track overall time played
+        if (this.timer == null)
+        {
+            //create timer
+            this.timer = new Timer();
+        }
+        
+        //if this is timed mode, calculate new time for next level
+        if (this.mode == Mode.Timed)
+        {
+            //set the countdown time
+            this.countdown = new Timer((DELAY_COUNTDOWN * level) + DELAY_COUNTDOWN);
         }
     }
     
@@ -186,9 +247,17 @@ public final class Manager implements Disposable, IElement
             if (board != null)
                 board.render(graphics);
             
-            //draw time elapsed
+            //draw timer
             graphics.setColor(Color.WHITE);
-            graphics.drawString("Time: " + timer.getDescPassed(TimerCollection.FORMAT_6), (int)board.getX() + 25, (int)board.getY() + 25);
+            
+            if (this.countdown != null)
+            {
+                graphics.drawString("Time: " + countdown.getDescRemaining(TimerCollection.FORMAT_6), (int)board.getX() + 25, (int)board.getY() + 25);
+            }
+            else
+            {
+                graphics.drawString("Time: " + timer.getDescPassed(TimerCollection.FORMAT_6), (int)board.getX() + 25, (int)board.getY() + 25);
+            }
         }
         else
         {
@@ -203,15 +272,17 @@ public final class Manager implements Disposable, IElement
                 //height of font
                 final int height = graphics.getFontMetrics().getHeight();
                 
+                final float factorIncrease = 1.95f;
+                
                 //set the appropriate font and color
                 tmp.setFont(graphics.getFont());
                 tmp.setFont(tmp.getFont().deriveFont(36f));
                 tmp.setColor(Color.WHITE);
-
+                
                 String display = "Game Over";
                 
                 int x = (int)(board.getX() + (board.getWidth()  / 2) - (tmp.getFontMetrics().stringWidth(display) / 2));
-                int y = (int)(board.getY() + (board.getHeight() / 3));
+                int y = (int)(board.getY() + (board.getHeight() * .25));
 
                 //draw game over message
                 tmp.drawString(display, x, y);
@@ -221,7 +292,7 @@ public final class Manager implements Disposable, IElement
                 
                 //draw string
                 x = (int)(board.getX() + (board.getWidth()  / 2) - (tmp.getFontMetrics().stringWidth(display) / 2));
-                y += (height * 2);
+                y += (height * factorIncrease);
                 tmp.drawString(display, x, y);
                 
                 //score played message
@@ -229,8 +300,16 @@ public final class Manager implements Disposable, IElement
                 
                 //draw string
                 x = (int)(board.getX() + (board.getWidth()  / 2) - (tmp.getFontMetrics().stringWidth(display) / 2));
-                y += (height * 2);
-                tmp.drawString(display, x, y + (height * 2));
+                y += (height * factorIncrease);
+                tmp.drawString(display, x, y);
+                
+                //let user know
+                display = "Hit \"Esc\" to open menu";
+                
+                //draw string
+                x = (int)(board.getX() + (board.getWidth()  / 2) - (tmp.getFontMetrics().stringWidth(display) / 2));
+                y += (height * factorIncrease);
+                tmp.drawString(display, x, y);
             }
             else
             {

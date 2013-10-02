@@ -46,7 +46,7 @@ public class Board extends Sprite implements Disposable, IElement
     private static final int BALL_MAX_SPEED = 1;
     
     //random list of sound effects
-    private List<Object> keys;
+    private List<GameAudio> keys;
     
     //has the level completed
     private boolean gameover = false;
@@ -65,27 +65,48 @@ public class Board extends Sprite implements Disposable, IElement
     
     public Board()
     {
+        super.dispose();
+        
         //create an empty list for our balls
         balls = new ArrayList<>();
         
         //our random number generator
         random = new Random(seed);
         
+        //create empty list of possible sound effects to play
         keys = new ArrayList<>();
-        keys.add(GameAudio.Sound1);
-        keys.add(GameAudio.Sound2);
-        keys.add(GameAudio.Sound3);
-        keys.add(GameAudio.Sound4);
-        keys.add(GameAudio.Sound5);
         
-        //display seed for now
-        System.out.println("Seed = " + seed);
+        //fill empty list
+        resetAudioSelections();
     }
     
     @Override
     public void dispose()
     {
+        for (Ball ball : balls)
+        {
+            ball.dispose();
+        }
         
+        balls.clear();
+        balls = null;
+        
+        random = null;
+        
+        player.dispose();
+        player = null;
+        
+        keys.clear();
+        keys = null;
+    }
+    
+    private void resetAudioSelections()
+    {
+        keys.add(GameAudio.Sound1);
+        keys.add(GameAudio.Sound2);
+        keys.add(GameAudio.Sound3);
+        keys.add(GameAudio.Sound4);
+        keys.add(GameAudio.Sound5);
     }
     
     /**
@@ -293,8 +314,17 @@ public class Board extends Sprite implements Disposable, IElement
         //if any collision flag will be true to play a random sound effect
         if (play)
         {
+            final int index = random.nextInt(keys.size());
+            
             //play random hit sound effect
-            engine.getResources().getGameAudio(GameAudio.values()[random.nextInt(keys.size())]).play();
+            engine.getResources().playGameAudio(keys.get(index));
+            
+            //remove constant from list
+            keys.remove(index);
+            
+            //if list is empty reset
+            if (keys.isEmpty())
+                resetAudioSelections();
         }
         
         //if the game is not over lets check to see if it is
@@ -309,12 +339,12 @@ public class Board extends Sprite implements Disposable, IElement
                 if (succeed)
                 {
                     //play succeed sound effect
-                    engine.getResources().getGameAudio(GameAudio.Sound6).play();
+                    engine.getResources().playGameAudio(GameAudio.Sound6);
                 }
                 else
                 {
                     //play fail sound effect
-                    engine.getResources().getGameAudio(GameAudio.Sound7).play();
+                    engine.getResources().playGameAudio(GameAudio.Sound7);
                 }
                 
                 //flag game over as true

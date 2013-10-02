@@ -85,6 +85,19 @@ public class Ball extends Sprite implements Disposable, IElement
         this(true);
     }
     
+    @Override
+    public void dispose()
+    {
+        super.dispose();
+        
+        if (this.timers != null)
+            this.timers.dispose();
+        
+        this.timers = null;
+        
+        this.animation = null;
+    }
+    
     public long getId()
     {
         return this.id;

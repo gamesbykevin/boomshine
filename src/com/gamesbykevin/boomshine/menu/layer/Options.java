@@ -6,8 +6,9 @@ import com.gamesbykevin.framework.util.Timer;
 import com.gamesbykevin.framework.util.TimerCollection;
 
 import com.gamesbykevin.boomshine.engine.Engine;
-import com.gamesbykevin.boomshine.resource.Resources;
+import com.gamesbykevin.boomshine.manager.Manager.*;
 import com.gamesbykevin.boomshine.menu.CustomMenu.*;
+import com.gamesbykevin.boomshine.resource.Resources;
 
 public class Options extends Layer implements LayerRules
 {
@@ -30,6 +31,14 @@ public class Options extends Layer implements LayerRules
         //setup options here
         Option tmp;
             
+        //all the different game modes
+        tmp = new Option("Mode: ");
+        for (Mode mode : Mode.values())
+        {
+            tmp.add(mode.toString(), engine.getResources().getMenuAudio(Resources.MenuAudio.OptionChange));
+        }
+        super.add(OptionKey.Mode, tmp);
+        
         tmp = new Option("Sound: ");
         for (Toggle toggle : Toggle.values())
         {

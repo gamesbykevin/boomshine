@@ -45,7 +45,7 @@ public class Resources implements IResources
     {
         TitleScreen, Credits, AppletFocus, TitleBackground, Mouse, MouseDrag, 
         Controls1,  
-        Instructions1, 
+        Instructions1, Instructions2, 
     }
     
     public enum Fonts
@@ -60,7 +60,7 @@ public class Resources implements IResources
     {
         everyResource = new LinkedHashMap<>();
         
-        //load single sprite sheet
+        //load game audio
         add(Type.GameAudio, (Object[])GameAudio.values(), RESOURCE_DIR + "audio/game/sound/{0}.wav", "Loading Game Audio Resources", Manager.Type.Audio);
         
         //load single sprite sheet
@@ -129,17 +129,13 @@ public class Resources implements IResources
         return getResources(Type.MenuAudio).getAudio(key);
     }
     
-    public Audio getGameAudio(final Object key)
-    {
-        return getResources(Type.GameAudio).getAudio(key);
-    }
-    
     /**
      * Stop all sound
      */
     public void stopAllSound()
     {
         getResources(Type.MenuAudio).stopAllAudio();
+        getResources(Type.GameAudio).stopAllAudio();
     }
     
     /**
@@ -169,6 +165,15 @@ public class Resources implements IResources
     }
     
     /**
+     * Play sound effect
+     * @param key 
+     */
+    public void playGameAudio(final Object key)
+    {
+        getResources(Type.GameAudio).playAudio(key);
+    }
+    
+    /**
      * Checks to see if audio is turned on
      * @return 
      */
@@ -188,8 +193,9 @@ public class Resources implements IResources
     public void setAudioEnabled(final boolean enabled)
     {
         getResources(Type.MenuAudio).setAudioEnabled(enabled);
-        //all other existing audio collections should be disabled here as well
         
+        //all other existing audio collections should be disabled here as well
+        getResources(Type.GameAudio).setAudioEnabled(enabled);
     }
     
     @Override

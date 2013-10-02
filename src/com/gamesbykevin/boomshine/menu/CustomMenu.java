@@ -1,17 +1,6 @@
 package com.gamesbykevin.boomshine.menu;
 
-import com.gamesbykevin.boomshine.menu.layer.Options;
-import com.gamesbykevin.boomshine.menu.layer.Title;
-import com.gamesbykevin.boomshine.menu.layer.ExitGameConfirm;
-import com.gamesbykevin.boomshine.menu.layer.StartGame;
-import com.gamesbykevin.boomshine.menu.layer.OptionsInGame;
-import com.gamesbykevin.boomshine.menu.layer.NewGameConfirmed;
-import com.gamesbykevin.boomshine.menu.layer.Instructions1;
-import com.gamesbykevin.boomshine.menu.layer.NoFocus;
-import com.gamesbykevin.boomshine.menu.layer.Controls1;
-import com.gamesbykevin.boomshine.menu.layer.NewGameConfirm;
-import com.gamesbykevin.boomshine.menu.layer.MainTitle;
-import com.gamesbykevin.boomshine.menu.layer.Credits;
+import com.gamesbykevin.boomshine.menu.layer.*;
 import com.gamesbykevin.boomshine.engine.Engine;
 
 import com.gamesbykevin.framework.display.FullScreen;
@@ -40,7 +29,7 @@ public class CustomMenu extends Menu
     { 
         Sound, FullScreen, StartGame, Options, Controls, Instructions, Credits, GoBack, Resume, 
         NewGame, ExitGame, NewGameConfim, NewGameDeny, ExitGameConfirm, ExitGameDeny, 
-        
+        Mode
     } 
     
     //unique key to indentify each Layer
@@ -49,7 +38,7 @@ public class CustomMenu extends Menu
         Title, Credits, MainTitle, Options, OptionsInGame, 
         NewGameConfirm, ExitGameConfirm, NoFocus, StartGame, NewGameConfirmed, 
         Controls1,  
-        Instructions1, 
+        Instructions1, Instructions2, 
     }
     
     /**
@@ -81,6 +70,7 @@ public class CustomMenu extends Menu
         super.add(LayerKey.Options,         new Options(engine));
         super.add(LayerKey.Controls1,       new Controls1(engine));
         super.add(LayerKey.Instructions1,   new Instructions1(engine));
+        super.add(LayerKey.Instructions2,   new Instructions2(engine));
         super.add(LayerKey.OptionsInGame,   new OptionsInGame(engine));
         super.add(LayerKey.NewGameConfirm,  new NewGameConfirm(engine));
         super.add(LayerKey.ExitGameConfirm, new ExitGameConfirm(engine));
@@ -119,25 +109,15 @@ public class CustomMenu extends Menu
             //if on the options screen check if sound/fullScreen enabled
             if (super.hasCurrent(LayerKey.Options))
             {
-                //if option exists
-                if (super.hasOption(LayerKey.Options, OptionKey.Sound))
-                    tmpSound = Toggle.values()[getOptionSelectionIndex(LayerKey.Options, OptionKey.Sound)];
-                
-                //if option exists
-                if (super.hasOption(LayerKey.Options, OptionKey.FullScreen))
-                    tmpFullWindow = Toggle.values()[getOptionSelectionIndex(LayerKey.Options, OptionKey.FullScreen)];
+                tmpSound = Toggle.values()[getOptionSelectionIndex(LayerKey.Options, OptionKey.Sound)];
+                tmpFullWindow = Toggle.values()[getOptionSelectionIndex(LayerKey.Options, OptionKey.FullScreen)];
             }
             
             //if on the in-game options screen check if sound/fullScreen enabled
             if (super.hasCurrent(LayerKey.OptionsInGame))
             {
-                //if option exists
-                if (super.hasOption(LayerKey.OptionsInGame, OptionKey.Sound))
-                    tmpSound = Toggle.values()[getOptionSelectionIndex(LayerKey.OptionsInGame, OptionKey.Sound)];
-                
-                //if option exists
-                if (super.hasOption(LayerKey.OptionsInGame, OptionKey.FullScreen))
-                    tmpFullWindow = Toggle.values()[getOptionSelectionIndex(LayerKey.OptionsInGame, OptionKey.FullScreen)];
+                tmpSound = Toggle.values()[getOptionSelectionIndex(LayerKey.OptionsInGame, OptionKey.Sound)];
+                tmpFullWindow = Toggle.values()[getOptionSelectionIndex(LayerKey.OptionsInGame, OptionKey.FullScreen)];
             }
             
             //if starting a new game change layer, stop all sound
