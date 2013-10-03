@@ -3,7 +3,7 @@ package com.gamesbykevin.boomshine.menu.layer;
 import com.gamesbykevin.framework.menu.Layer;
 import com.gamesbykevin.framework.menu.Option;
 import com.gamesbykevin.boomshine.engine.Engine;
-import com.gamesbykevin.boomshine.resource.Resources;
+import com.gamesbykevin.boomshine.resource.*;
 import com.gamesbykevin.boomshine.menu.CustomMenu;
 import com.gamesbykevin.boomshine.menu.CustomMenu.Toggle;
 
@@ -33,14 +33,14 @@ public class OptionsInGame extends Layer implements LayerRules
         tmp = new Option("Sound: ");
         for (Toggle toggle : Toggle.values())
         {
-            tmp.add(toggle.toString(), engine.getResources().getMenuAudio(Resources.MenuAudio.OptionChange));
+            tmp.add(toggle.toString(), engine.getResources().getMenuAudio(MenuAudio.Keys.OptionChange));
         }
         super.add(CustomMenu.OptionKey.Sound, tmp);
         
         tmp = new Option("FullScreen: ");
         for (Toggle toggle : Toggle.values())
         {
-            tmp.add(toggle.toString(), engine.getResources().getMenuAudio(Resources.MenuAudio.OptionChange));
+            tmp.add(toggle.toString(), engine.getResources().getMenuAudio(MenuAudio.Keys.OptionChange));
         }
         super.add(CustomMenu.OptionKey.FullScreen, tmp);
         

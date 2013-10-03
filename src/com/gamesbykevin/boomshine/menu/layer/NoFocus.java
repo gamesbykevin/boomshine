@@ -1,11 +1,8 @@
 package com.gamesbykevin.boomshine.menu.layer;
 
 import com.gamesbykevin.framework.menu.Layer;
-import com.gamesbykevin.framework.util.Timer;
-import com.gamesbykevin.framework.util.TimerCollection;
 import com.gamesbykevin.boomshine.engine.Engine;
-import com.gamesbykevin.boomshine.resource.Resources;
-import com.gamesbykevin.boomshine.menu.CustomMenu;
+import com.gamesbykevin.boomshine.resource.*;
 
 public class NoFocus extends Layer implements LayerRules
 {
@@ -13,7 +10,7 @@ public class NoFocus extends Layer implements LayerRules
     {
         super(Layer.Type.NONE, engine.getMain().getScreen());
         
-        setImage(engine.getResources().getMenuImage(Resources.MenuImage.AppletFocus));
+        setImage(engine.getResources().getMenuImage(MenuImage.Keys.AppletFocus));
         setForce(false);
         setPause(true);
         

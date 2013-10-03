@@ -6,91 +6,77 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Rectangle;
-import java.text.MessageFormat;
-import java.util.LinkedHashMap;
+
+import java.util.HashMap;
 
 /**
  * This class will load all resources in the collection and provide a way to access them
  * @author GOD
  */
 public class Resources implements IResources
-{   
-    //this will contain all resources
-    private LinkedHashMap<Object, Manager> everyResource;
-    
-    //collections of resources
-    private enum Type
-    {
-        MenuImage, MenuAudio, Fonts, GameImage, GameAudio
-    }
-    
+{
     //root directory of all resources
     public static final String RESOURCE_DIR = "resources/"; 
     
-    public enum GameImage
-    {
-    }
-    
-    public enum GameAudio
-    {
-        Sound1, Sound2, Sound3, Sound4, Sound5, Sound6, Sound7
-    }
-    
-    public enum MenuAudio
-    {
-        OptionChange
-    }
-    
-    public enum MenuImage
-    {
-        TitleScreen, Credits, AppletFocus, TitleBackground, Mouse, MouseDrag, 
-        Controls1,  
-        Instructions1, Instructions2, 
-    }
-    
-    public enum Fonts
-    {
-        Menu, Game
-    }
-    
-    //indicates wether or not we are still loading resources
+    //are we done loading resources
     private boolean loading = true;
+    
+    private enum TypeAudio
+    {
+        GameAudio, MenuAudio
+    }
+    
+    private enum TypeImage
+    {
+        MenuImage
+    }
+    
+    private enum TypeFont
+    {
+        AllFonts
+    }
+    
+    //object containing all audio objects
+    private final HashMap<Object, AudioManager> audio;
+    
+    //object containing all image objects
+    private final HashMap<Object, ImageManager> images;
+    
+    //object containing all font objects
+    private final HashMap<Object, FontManager> fonts;
     
     public Resources() throws Exception
     {
-        everyResource = new LinkedHashMap<>();
+        audio = new HashMap<>();
+        audio.put(TypeAudio.GameAudio, new GameAudio());
+        audio.put(TypeAudio.MenuAudio, new MenuAudio());
         
-        //load game audio
-        add(Type.GameAudio, (Object[])GameAudio.values(), RESOURCE_DIR + "audio/game/sound/{0}.wav", "Loading Game Audio Resources", Manager.Type.Audio);
+        images = new HashMap<>();
+        images.put(TypeImage.MenuImage, new MenuImage());
         
-        //load single sprite sheet
-        add(Type.GameImage, (Object[])GameImage.values(), RESOURCE_DIR + "images/game/numbers/{0}.png", "Loading Game Image Resources", Manager.Type.Image);
+        fonts = new HashMap<>();
+        fonts.put(TypeFont.AllFonts, new AllFonts());
         
-        //load all menu images
-        add(Type.MenuImage, (Object[])MenuImage.values(), RESOURCE_DIR + "images/menu/{0}.gif", "Loading Menu Image Resources", Manager.Type.Image);
-        
-        //load all game fonts
-        add(Type.Fonts,  (Object[])Fonts.values(),  RESOURCE_DIR + "font/{0}.ttf", "Loading Font Resources", Manager.Type.Font);
-        
-        //load all menu audio effects
-        add(Type.MenuAudio, (Object[])MenuAudio.values(), RESOURCE_DIR + "audio/menu/sound/{0}.wav", "Loading Menu Audio Resources", Manager.Type.Audio);
-    }
-    
-    //add a collection of resources audio/image/font/text
-    private void add(final Object key, final Object[] eachResourceKey, final String directory, final String loadDesc, final Manager.Type resourceType) throws Exception
-    {
-        String[] locations = new String[eachResourceKey.length];
-        for (int i=0; i < locations.length; i++)
+        //make sure each constant has been added to hashmap
+        for (TypeAudio key : TypeAudio.values())
         {
-            locations[i] = MessageFormat.format(directory, i);
+            if (audio.get(key) == null)
+                throw new Exception(key + " needs to be added to HashMap audio");
         }
-
-        Manager resources = new Manager(Manager.LoadMethod.OnePerFrame, locations, eachResourceKey, resourceType);
         
-        //only set the description once for this specific resource or else an exception will be thrown
-        resources.setDescription(loadDesc);
+        //make sure each constant has been added to hashmap
+        for (TypeImage key : TypeImage.values())
+        {
+            if (images.get(key) == null)
+                throw new Exception(key + " needs to be added to HashMap images");
+        }
         
-        everyResource.put(key, resources);
+        //make sure each constant has been added to hashmap
+        for (TypeFont key : TypeFont.values())
+        {
+            if (fonts.get(key) == null)
+                throw new Exception(key + " needs to be added to HashMap fonts");
+        }
     }
     
     @Override
@@ -99,43 +85,15 @@ public class Resources implements IResources
         return loading;
     }
     
-    private Manager getResources(final Object key)
-    {
-        return everyResource.get(key);
-    }
-    
-    public Font getFont(final Object key)
-    {
-        return getResources(Type.Fonts).getFont(key);
-    }
-    
-    public Image getGameImage(final Object key)
-    {
-        return getResources(Type.GameImage).getImage(key);
-    }
-    
-    public Image getMenuImage(final Object key)
-    {
-        return getResources(Type.MenuImage).getImage(key);
-    }
-    
-    public void playMenuAudio(final Object key, final boolean loop)
-    {
-        getResources(Type.MenuAudio).playAudio(key, loop);
-    }
-    
-    public Audio getMenuAudio(final Object key)
-    {
-        return getResources(Type.MenuAudio).getAudio(key);
-    }
-    
     /**
      * Stop all sound
      */
     public void stopAllSound()
     {
-        getResources(Type.MenuAudio).stopAllAudio();
-        getResources(Type.GameAudio).stopAllAudio();
+        for (Object key : audio.keySet())
+        {
+            audio.get(key).stopAll();
+        }
     }
     
     /**
@@ -146,31 +104,44 @@ public class Resources implements IResources
     @Override
     public void update(final Class source) throws Exception
     {
-        Object[] keys = everyResource.keySet().toArray();
-        
-        for (Object key : keys)
+        if (fonts != null)
         {
-            Manager resources = getResources(key);
-            
-            if (!resources.isComplete())
+            for (Object key : fonts.keySet())
             {
-                //load the resources
-                resources.update(source);
-                return;
+                if (fonts.get(key).isLoading())
+                {
+                    fonts.get(key).update(source);
+                    return;
+                }
             }
         }
         
-        //if this line is reached we are done loading every resource
-        loading = false;
-    }
-    
-    /**
-     * Play sound effect
-     * @param key 
-     */
-    public void playGameAudio(final Object key)
-    {
-        getResources(Type.GameAudio).playAudio(key);
+        if (audio != null)
+        {
+            for (Object key : audio.keySet())
+            {
+                if (audio.get(key).isLoading())
+                {
+                    audio.get(key).update(source);
+                    return;
+                }
+            }
+        }
+        
+        if (images != null)
+        {
+            for (Object key : images.keySet())
+            {
+                if (images.get(key).isLoading())
+                {
+                    images.get(key).update(source);
+                    return;
+                }
+            }
+        }
+        
+        //we are done loading the resources
+        this.loading = false;
     }
     
     /**
@@ -179,8 +150,12 @@ public class Resources implements IResources
      */
     public boolean isAudioEnabled()
     {
-        //if the menu audio is not enabled the remaining audio collections should not be as well
-        return getResources(Type.MenuAudio).isAudioEnabled();
+        for (Object key : audio.keySet())
+        {
+            return audio.get(key).isEnabled();
+        }
+        
+        return false;
     }
     
     /**
@@ -189,32 +164,74 @@ public class Resources implements IResources
      * 
      * @param boolean Is the audio enabled 
      */
-    @Override
     public void setAudioEnabled(final boolean enabled)
     {
-        getResources(Type.MenuAudio).setAudioEnabled(enabled);
-        
-        //all other existing audio collections should be disabled here as well
-        getResources(Type.GameAudio).setAudioEnabled(enabled);
+        for (Object key : audio.keySet())
+        {
+            audio.get(key).setEnabled(enabled);
+        }
+    }
+    
+    /**
+     * Get the specified Image from the Menu list
+     * @param key
+     * @return Image
+     */
+    public Image getMenuImage(final Object key)
+    {
+        return images.get(TypeImage.MenuImage).get(key);
+    }
+    
+    public Audio getMenuAudio(final Object key)
+    {
+        return audio.get(TypeAudio.MenuAudio).get(key);
+    }
+    
+    public void playGameAudio(final Object key)
+    {
+        audio.get(TypeAudio.GameAudio).play(key);
+    }
+    
+    public Font getFont(final Object key)
+    {
+        return fonts.get(TypeFont.AllFonts).get(key);
     }
     
     @Override
     public void dispose()
     {
-        for (Object key : everyResource.keySet().toArray())
+        if (audio != null)
         {
-            Manager resources = getResources(key);
+            for (Object key : audio.keySet())
+            {
+                audio.get(key).dispose();
+                audio.put(key, null);
+            }
             
-            if (resources != null)
-                resources.dispose();
-            
-            resources = null;
-            
-            everyResource.put(key, null);
+            audio.clear();
         }
         
-        everyResource.clear();
-        everyResource = null;
+        if (images != null)
+        {
+            for (Object key : images.keySet())
+            {
+                images.get(key).dispose();
+                images.put(key, null);
+            }
+            
+            images.clear();
+        }
+        
+        if (fonts != null)
+        {
+            for (Object key : fonts.keySet())
+            {
+                fonts.get(key).dispose();
+                fonts.put(key, null);
+            }
+            
+            fonts.clear();
+        }
     }
     
     @Override
@@ -223,16 +240,39 @@ public class Resources implements IResources
         if (!isLoading())
             return;
         
-        for (Object key : everyResource.keySet().toArray())
+        if (fonts != null)
         {
-            Manager resources = getResources(key);
-            
-            //if loading the resources is not complete yet, draw progress
-            if (!resources.isComplete())
+            for (Object key : fonts.keySet())
             {
-                //display progress
-                resources.render(graphics, screen);
-                return;
+                if (fonts.get(key).isLoading())
+                {
+                    fonts.get(key).render(graphics, screen);
+                    return;
+                }
+            }
+        }
+        
+        if (audio != null)
+        {
+            for (Object key : audio.keySet())
+            {
+                if (audio.get(key).isLoading())
+                {
+                    audio.get(key).render(graphics, screen);
+                    return;
+                }
+            }
+        }
+        
+        if (images != null)
+        {
+            for (Object key : images.keySet())
+            {
+                if (images.get(key).isLoading())
+                {
+                    images.get(key).render(graphics, screen);
+                    return;
+                }
             }
         }
     }

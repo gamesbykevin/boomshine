@@ -5,7 +5,7 @@ import com.gamesbykevin.framework.util.Timer;
 import com.gamesbykevin.framework.util.TimerCollection;
 
 import com.gamesbykevin.boomshine.engine.Engine;
-import com.gamesbykevin.boomshine.resource.Resources.MenuImage;
+import com.gamesbykevin.boomshine.resource.*;
 import com.gamesbykevin.boomshine.menu.CustomMenu;
 
 public class Title extends Layer implements LayerRules
@@ -14,7 +14,7 @@ public class Title extends Layer implements LayerRules
     {
         super(Layer.Type.NONE, engine.getMain().getScreen());
         
-        super.setImage(engine.getResources().getMenuImage(MenuImage.TitleScreen));
+        super.setImage(engine.getResources().getMenuImage(MenuImage.Keys.TitleScreen));
 
         //we will not force this layer to show
         setForce(true);

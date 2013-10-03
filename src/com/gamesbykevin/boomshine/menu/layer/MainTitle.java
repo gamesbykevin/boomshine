@@ -6,7 +6,7 @@ import com.gamesbykevin.framework.util.Timer;
 import com.gamesbykevin.framework.util.TimerCollection;
 
 import com.gamesbykevin.boomshine.engine.Engine;
-import com.gamesbykevin.boomshine.resource.Resources;
+import com.gamesbykevin.boomshine.resource.*;
 import com.gamesbykevin.boomshine.menu.CustomMenu;
 import com.gamesbykevin.boomshine.shared.Shared;
 
@@ -17,7 +17,7 @@ public class MainTitle extends Layer implements LayerRules
         super(Layer.Type.NONE, engine.getMain().getScreen());
         
         setTitle(Shared.GAME_NAME);
-        setImage(engine.getResources().getMenuImage(Resources.MenuImage.TitleBackground));
+        setImage(engine.getResources().getMenuImage(MenuImage.Keys.TitleBackground));
         setForce(false);
         setPause(true);
         setTimer(new Timer(TimerCollection.toNanoSeconds(5000L)));

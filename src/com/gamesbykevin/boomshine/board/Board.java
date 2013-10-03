@@ -5,7 +5,7 @@ import com.gamesbykevin.framework.resources.Disposable;
 
 import com.gamesbykevin.boomshine.board.Ball.Animation;
 import com.gamesbykevin.boomshine.engine.Engine;
-import com.gamesbykevin.boomshine.resource.Resources.*;
+import com.gamesbykevin.boomshine.resource.*;
 import com.gamesbykevin.boomshine.shared.IElement;
 import java.awt.Color;
 
@@ -46,7 +46,7 @@ public class Board extends Sprite implements Disposable, IElement
     private static final int BALL_MAX_SPEED = 1;
     
     //random list of sound effects
-    private List<GameAudio> keys;
+    private List<GameAudio.Keys> keys;
     
     //has the level completed
     private boolean gameover = false;
@@ -102,11 +102,11 @@ public class Board extends Sprite implements Disposable, IElement
     
     private void resetAudioSelections()
     {
-        keys.add(GameAudio.Sound1);
-        keys.add(GameAudio.Sound2);
-        keys.add(GameAudio.Sound3);
-        keys.add(GameAudio.Sound4);
-        keys.add(GameAudio.Sound5);
+        keys.add(GameAudio.Keys.Sound1);
+        keys.add(GameAudio.Keys.Sound2);
+        keys.add(GameAudio.Keys.Sound3);
+        keys.add(GameAudio.Keys.Sound4);
+        keys.add(GameAudio.Keys.Sound5);
     }
     
     /**
@@ -339,12 +339,12 @@ public class Board extends Sprite implements Disposable, IElement
                 if (succeed)
                 {
                     //play succeed sound effect
-                    engine.getResources().playGameAudio(GameAudio.Sound6);
+                    engine.getResources().playGameAudio(GameAudio.Keys.Sound6);
                 }
                 else
                 {
                     //play fail sound effect
-                    engine.getResources().playGameAudio(GameAudio.Sound7);
+                    engine.getResources().playGameAudio(GameAudio.Keys.Sound7);
                 }
                 
                 //flag game over as true

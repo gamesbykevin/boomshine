@@ -16,12 +16,6 @@ public interface IResources extends Disposable
     public void update(final Class source) throws Exception;
     
     /**
-     * Here we will control all of the existing audio
-     * @param enabled Is the audio enabled or not
-     */
-    public void setAudioEnabled(final boolean enabled);
-    
-    /**
      * This method will determine if all resources have been loaded into memory
      * @return true if we are still loading resources
      */
